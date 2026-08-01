@@ -24,7 +24,7 @@ Do **not** use when:
 from __future__ import annotations
 
 import warnings
-from typing import Any
+from typing import Any, cast
 
 import numpy as np
 from numpy.typing import NDArray
@@ -217,7 +217,7 @@ def _is_missing(data: NDArray[Any]) -> NDArray[Any]:
     :return: Boolean mask where ``True`` indicates a missing value.
     """
     if np.issubdtype(data.dtype, np.floating):
-        return np.isnan(data)  # type: ignore[no-any-return]
+        return cast("NDArray[Any]", np.isnan(data))
 
     # Object arrays — check element-wise for None
     mask = np.zeros(len(data), dtype=bool)

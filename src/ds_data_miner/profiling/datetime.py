@@ -22,7 +22,10 @@ Do **not** use when:
 
 from __future__ import annotations
 
+from typing import Any
+
 import numpy as np
+from numpy.typing import NDArray
 
 from ds_data_miner.core.contracts import DatetimeProfile
 from ds_data_miner.core.exceptions import DataQualityError
@@ -99,7 +102,7 @@ class DatetimeProfiler(BaseProfiler):
     # Public API
     # ------------------------------------------------------------------
 
-    def fit(self, data: np.ndarray) -> DatetimeProfile:
+    def fit(self, data: NDArray[Any]) -> DatetimeProfile:
         """Full-scan profile of a 1-D datetime64 array.
 
         :param data: 1-D NumPy array of ``datetime64`` dtype (any resolution).
@@ -209,7 +212,7 @@ _FREQ_MAP: list[tuple[float, str]] = [
 ]
 
 
-def _infer_freq(sorted_valid: np.ndarray) -> str | None:
+def _infer_freq(sorted_valid: NDArray[Any]) -> str | None:
     """Infer a human-readable sampling frequency from sorted timestamps.
 
     Uses the median time-delta and snaps to the nearest known frequency

@@ -8,7 +8,10 @@ structured results suitable for embedding into a :class:`DistributionProfile`.
 
 from __future__ import annotations
 
+from typing import Any
+
 import numpy as np
+from numpy.typing import NDArray
 from scipy import stats as sp_stats
 
 
@@ -23,7 +26,7 @@ class DistributionTester:
     def __init__(self, dist_name: str = "norm") -> None:
         self.dist_name = dist_name
 
-    def test(self, data: np.ndarray) -> dict[str, float]:
+    def test(self, data: NDArray[Any]) -> dict[str, float]:
         """Run a Kolmogorov-Smirnov test against the target distribution.
 
         :param data: 1-D numeric array (NaN/Inf values are dropped).

@@ -22,7 +22,10 @@ Do **not** use when:
 
 from __future__ import annotations
 
+from typing import Any
+
 import numpy as np
+from numpy.typing import NDArray
 from scipy import stats as sp_stats
 
 from ds_data_miner.core.contracts import DistributionProfile
@@ -100,7 +103,7 @@ class NumericProfiler(BaseProfiler):
     # Public API
     # ------------------------------------------------------------------
 
-    def fit(self, data: np.ndarray) -> DistributionProfile:
+    def fit(self, data: NDArray[Any]) -> DistributionProfile:
         """Full-scan profile of a 1-D numeric array.
 
         Runs a complete vectorised scan over *data*, computes all statistics,

@@ -20,8 +20,10 @@ handles dtype conversion and duplicate detection automatically.
 from __future__ import annotations
 
 from datetime import datetime, timezone
+from typing import Any
 
 import numpy as np
+from numpy.typing import NDArray
 
 import ds_data_miner
 from ds_data_miner.core.contracts import DatasetReport
@@ -102,7 +104,7 @@ class ProfilingEngine:
 
     def profile_dataset(
         self,
-        columns: dict[str, np.ndarray],
+        columns: dict[str, NDArray[Any]],
         *,
         dataset_name: str = "unnamed",
         duplicate_row_count: int = 0,
@@ -167,7 +169,7 @@ class ProfilingEngine:
 
     def _route(
         self,
-        data: np.ndarray,
+        data: NDArray[Any],
     ) -> NumericProfiler | CategoricalProfiler | DatetimeProfiler:
         """Select the appropriate profiler based on array dtype.
 

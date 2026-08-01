@@ -24,10 +24,11 @@ any :class:`pandas.DataFrame`.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 import pandas as pd
+from numpy.typing import NDArray
 
 from ds_data_miner.export.serializer import ReportExporter
 from ds_data_miner.profiling.engine import ProfilingEngine
@@ -149,7 +150,7 @@ class MinerAccessor:
         duplicate_row_count = int(df.duplicated().sum())
 
         # --- Convert columns to numpy arrays with dtype routing ---
-        columns: dict[str, np.ndarray] = {}
+        columns: dict[str, NDArray[Any]] = {}
         for col in df.columns:
             series = df[col]
             if pd.api.types.is_datetime64_any_dtype(series):

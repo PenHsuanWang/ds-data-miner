@@ -24,8 +24,10 @@ Do **not** use when:
 from __future__ import annotations
 
 import warnings
+from typing import Any
 
 import numpy as np
+from numpy.typing import NDArray
 
 from ds_data_miner.core.contracts import CategoricalProfile, CategoryStats
 from ds_data_miner.core.exceptions import DataQualityError, HighCardinalityWarning
@@ -110,7 +112,7 @@ class CategoricalProfiler(BaseProfiler):
     # Public API
     # ------------------------------------------------------------------
 
-    def fit(self, data: np.ndarray) -> CategoricalProfile:
+    def fit(self, data: NDArray[Any]) -> CategoricalProfile:
         """Full-scan profile of a 1-D categorical array.
 
         Counts all categories, computes proportions and binomial standard
@@ -206,7 +208,7 @@ class CategoricalProfiler(BaseProfiler):
 # ------------------------------------------------------------------
 
 
-def _is_missing(data: np.ndarray) -> np.ndarray:
+def _is_missing(data: NDArray[Any]) -> NDArray[Any]:
     """Vectorised missing-value detection for object arrays.
 
     Handles ``None``, ``np.nan`` (when dtype allows), and empty strings.
@@ -215,7 +217,7 @@ def _is_missing(data: np.ndarray) -> np.ndarray:
     :return: Boolean mask where ``True`` indicates a missing value.
     """
     if np.issubdtype(data.dtype, np.floating):
-        return np.isnan(data)
+        return np.isnan(data)  # type: ignore[no-any-return]
 
     # Object arrays — check element-wise for None
     mask = np.zeros(len(data), dtype=bool)
@@ -223,7 +225,7 @@ def _is_missing(data: np.ndarray) -> np.ndarray:
     mask |= data == None  # noqa: E711 — intentional identity-agnostic check
     # Also catch np.nan sneaking into object arrays
     try:
-        float_cast = np.where(mask, 0.0, data)  # avoid NaN in already-marked
+        float_cast: NDArray[Any] = np.where(mask, 0.0, data)
         mask |= np.array(
             [isinstance(v, float) and np.isnan(v) for v in float_cast],
             dtype=bool,

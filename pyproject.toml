@@ -102,6 +102,7 @@ select = [
 ]
 ignore = [
     "E501",   # line too long (handled by formatter)
+    "TC002",  # NDArray from numpy.typing is used at runtime in annotations
 ]
 
 [tool.ruff.lint.isort]

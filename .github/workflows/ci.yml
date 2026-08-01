@@ -77,7 +77,7 @@ jobs:
       - name: Install package + mypy deps
         run: |
           uv pip install -e ".[dev]" --system
-          uv pip install mypy pydantic numpy scipy pandas-stubs --system
+          uv pip install mypy pydantic "numpy>=2.0" scipy pandas-stubs --system
 
       - name: mypy
         run: mypy src/

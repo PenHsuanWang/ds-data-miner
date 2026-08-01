@@ -1,0 +1,14 @@
+# CODEOWNERS — GitHub automatically requests review from these owners
+# when a PR touches the listed paths.
+# Syntax: <path-pattern> <owner1> <owner2>
+#
+# Set your GitHub username or team below.
+
+# Default: every file requires review
+*                          @your-org/ds-data-miner-maintainers
+
+# Core contracts — stricter review (breaking changes must be deliberate)
+src/ds_data_miner/core/    @your-org/ds-data-miner-maintainers
+
+# CI / release pipelines
+.github/                   @your-org/ds-data-miner-maintainers

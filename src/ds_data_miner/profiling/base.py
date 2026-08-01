@@ -8,10 +8,11 @@ using vectorised (NumPy/SciPy) operations — no sampling, no Python loops.
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
+
+from numpy.typing import NDArray
 
 if TYPE_CHECKING:
-    import numpy as np
     from pydantic import BaseModel
 
 
@@ -23,7 +24,7 @@ class BaseProfiler(ABC):
     """
 
     @abstractmethod
-    def fit(self, data: np.ndarray) -> BaseModel:
+    def fit(self, data: NDArray[Any]) -> BaseModel:
         """Perform a full-scan analysis on *data* and return a profile.
 
         :param data: 1-D NumPy array to profile.

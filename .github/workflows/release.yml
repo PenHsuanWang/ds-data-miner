@@ -1,0 +1,118 @@
+# Release — triggered when a semver tag is pushed (e.g. v0.1.1)
+#
+# Workflow:
+#   1. Build the wheel + sdist
+#   2. Publish to PyPI via Trusted Publishing (no API token stored in secrets)
+#
+# Prerequisites (one-time setup):
+#   - Configure Trusted Publisher on pypi.org:
+#       Project → Publishing → Add publisher
+#       owner:      your-org
+#       repository: ds-data-miner
+#       workflow:   release.yml
+#       environment: pypi
+#
+# Usage:
+#   bump-my-version bump patch   # 0.1.0 → 0.1.1  (updates files + git tag)
+#   git push && git push --tags  # triggers this workflow
+
+name: Release
+
+on:
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+"        # matches v0.1.0, v1.2.3, etc.
+
+permissions:
+  contents: read
+  id-token: write   # required for PyPI Trusted Publishing
+
+jobs:
+  # ──────────────────────────────────────────────────────────────────────────
+  # 1. Run the full CI suite against the tagged commit first
+  # ──────────────────────────────────────────────────────────────────────────
+  ci-gate:
+    name: "CI Gate (lint + test)"
+    uses: ./.github/workflows/ci.yml   # reuse the main CI workflow
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # 2. Build wheel + sdist
+  # ──────────────────────────────────────────────────────────────────────────
+  build:
+    name: "Build distribution"
+    needs: ci-gate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Install build backend
+        run: uv pip install hatchling build --system
+
+      - name: Build wheel + sdist
+        run: python -m build
+
+      - name: Verify package contents
+        run: |
+          uv pip install twine --system
+          twine check dist/*
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # 3. Publish to PyPI (Trusted Publishing — no API token needed)
+  # ──────────────────────────────────────────────────────────────────────────
+  publish-pypi:
+    name: "Publish → PyPI"
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: "https://pypi.org/project/ds-data-miner/"
+    permissions:
+      id-token: write
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # 4. Create GitHub Release with auto-generated notes
+  # ──────────────────────────────────────────────────────────────────────────
+  github-release:
+    name: "Create GitHub Release"
+    needs: publish-pypi
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*
+          generate_release_notes: true
+          fail_on_unmatched_files: true

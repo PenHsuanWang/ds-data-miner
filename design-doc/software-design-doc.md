@@ -1,8 +1,10 @@
 # **軟體開發需求規格書 (Software Requirements Specification)**
 
-**專案名稱：** ds-data-miner — 探索式資料分析 (EDA) 計算核心引擎
-**文件版本：** v3.0
-**目標受眾：** 資料科學家 (Data Scientists)、機器學習工程師 (ML Engineers)、資料工程師 (Data Engineers)
+**專案名稱：** ds-data-miner — 探索式資料分析與統計診斷核心引擎  
+**文件版本：** v4.0  
+**目標受眾：** 資料科學家、機器學習工程師、製程整合工程師、FDC 演算法工程師、DevOps / MLOps 工程師
+
+---
 
 ## **1. 產品概述 (Product Overview)**
 
@@ -10,123 +12,189 @@
 
 在資料工程與機器學習管線（Pipeline）中，確保輸入資料的品質（Data Quality）與量化原始統計特徵的可靠性，是建立高可信度模型的第一道關卡。
 
-本專案（`ds-data-miner`）原名 `scikit-trust`，前身將資料探索（EDA）、多變數誤差傳遞（Uncertainty Propagation）與視覺化繪圖（Visualization）耦合於單一套件中。經過架構審查後，為符合 Unix 哲學（做一件事並做好），我們將系統拆分為**三個獨立的 Library**：
+`ds-data-miner` 是一個面向資料科學與半導體製造資料分析場景的核心引擎。除了傳統的探索式資料分析（EDA），v4.0 版本新增了**雙變數智慧診斷引擎 (Bivariate Statistical Intelligence)**，能根據資料型態、樣本結構、分佈特徵與統計證據，推薦合適的效應量或關聯性指標，並提供完整的決策追蹤。
 
-1. **`ds-data-miner`（本階段重點）：** 探索引擎計算核心。唯一職責是吞入原始資料，在**本地 Python Runtime 記憶體中進行嚴格的全表掃描運算**，並將包含統計特徵、資料品質指標與原生統計誤差的中介資料，統一匯出為標準化的 **JSON** 格式。
-2. **`ds-data-miner-vis`（未來階段）：** 讀取前述 JSON 檔案，負責渲染視覺化與製圖（如 Matplotlib）。
-3. **`ds-data-miner-reporter`（未來階段）：** 讀取前述 JSON 檔案，負責產出完整的 PDF/HTML 報告。
+系統採用三部曲架構，職責嚴格分離：
+
+1. **`ds-data-miner`（本階段重點）：** 探索式資料分析與統計診斷核心引擎。
+2. **`ds-data-miner-vis`（未來階段）：** 讀取標準化 JSON 輸出，負責視覺化渲染。
+3. **`ds-data-miner-reporter`（未來階段）：** 讀取標準化 JSON 輸出，負責報告產出。
 
 ### **1.2 核心價值**
 
+* **Evidence-driven Diagnostics：** 系統提供統計證據與推薦，而非絕對真理。每個推薦都附帶可追溯的 DecisionTrace。
 * **高可靠度：** 支援本地記憶體全量資料掃描，拒絕因抽樣造成的統計偏差。
-* **工程解耦：** 採用六角架構（Hexagonal Architecture），核心數學運算不受外部框架（如 Pandas）改版影響。視覺化與報告產出完全解耦至獨立套件。
-* **標準化輸出：** 所有分析結果以 JSON 格式匯出，作為下游視覺化與報告工具的標準資料合約。
-* **無縫整合：** 透過轉接器（Adapters）提供流暢的 API，支援 `pip install git+...` 直接整合進企業現有專案。
+* **統計安全性：** 具備 NaN/Inf 防禦、P-value underflow 處理、zero variance 保護、multiple testing correction、pseudo-replication 偵測。
+* **工程解耦：** 採用六角架構，核心數學運算不受外部框架改版影響。
+* **標準化輸出：** 所有分析結果以 JSON 格式匯出，作為下游工具的標準資料合約。
+
+---
 
 ## **2. 系統架構與領域驅動設計 (Architecture & DDD)**
 
-本系統嚴格遵守單一職責原則（SRP）與依賴反轉原則（DIP），系統邊界劃分如下：
+本系統嚴格遵守單一職責原則（SRP）與依賴反轉原則（DIP）。
 
-| 層級分類 | 模組名稱 | 權責定義 | 依賴限制 |
-| :---- | :---- | :---- | :---- |
-| **介面轉接層 (Adapter)** | my\_lib.pandas\_ext | 封裝 Pandas Accessor，將 DataFrame 轉換為核心合約物件 | 依賴 pandas, my\_lib.core |
-| **匯出層 (Export)** | my\_lib.export | 將 Profile 合約物件序列化為標準化 JSON 檔案 | 依賴 my\_lib.core |
-| **核心領域層 (Domain)** | my\_lib.profiling | 擔任「觀察者」，執行全量掃描、統計特徵萃取與資料品質檢驗 | **僅**依賴 numpy, scipy, my\_lib.core |
-| **資料合約層 (Contract)** | my\_lib.core | 定義跨模組通用的不可變資料結構（Pydantic Models） | 僅依賴 pydantic |
+| 層級 | 模組 | 職責 | 依賴限制 |
+|------|------|------|---------|
+| **Adapter** | `pandas_ext` | 封裝 `df.trust` Accessor，將 DataFrame 轉換為核心合約 | 依賴 `pandas`, `core`, `profiling`, `diagnostics` |
+| **Adapter** | `viz` | Matplotlib 繪圖輔助 | 依賴 `matplotlib`, `core` |
+| **Export** | `export` | 將 Profile / Diagnostic 合約序列化為 JSON | 依賴 `core` |
+| **Application** | `profiling.engine` | 單變數全表掃描排程 | 依賴 `profiling`, `core` |
+| **Application** | `diagnostics.engine` | 雙變數智慧診斷排程 | 依賴 `diagnostics`, `core` |
+| **Domain** | `profiling` | 全量掃描、統計特徵萃取、分佈檢定 | 僅依賴 `numpy`, `scipy`, `core` |
+| **Domain** | `diagnostics` | 證據收集、效應量計算、策略選擇、相關性分析 | 僅依賴 `numpy`, `scipy`, `core` |
+| **Domain** | `uncertainty` | 解析法 / 蒙地卡羅誤差傳遞 | 僅依賴 `numpy`, `scipy`, `core` |
+| **Core** | `core` | 不可變資料合約 (Pydantic Models)、枚舉、例外 | 僅依賴 `pydantic` |
+
+---
 
 ## **3. 核心功能需求 (Functional Requirements)**
 
-### **3.1 my\_lib.core (核心資料合約)**
+### **3.1 core — 核心資料合約**
 
-* **[REQ-CORE-01] 數值型統計合約：** 必須定義 `DistributionProfile`（Pydantic Model），至少包含以下屬性：
-    * 基礎統計量：`mean`, `variance`, `std`, `skewness`, `kurtosis`, `median`, `min`, `max`
-    * 分位數：`q25`, `q75`（或 `percentiles` 字典）
-    * 樣本資訊：`n_samples`, `n_valid`
-    * 資料品質指標：`missing_count`, `missing_ratio`, `inf_count`
-    * **統計誤差：** `sem`（平均數標準誤）, `ci_lower`, `ci_upper`（信賴區間，預設 95%）
-    * **直方圖表示：** `histogram_bin_edges: list[float]`, `histogram_counts: list[int]`（供下游繪圖使用，不儲存原始陣列）
-    * 分佈檢定：`distribution_type`, `ks_statistic`, `ks_p_value`
+* **[REQ-CORE-01] 單變數統計合約：** 必須定義 `DistributionProfile`, `CategoricalProfile`, `DatetimeProfile`，包含基礎統計量、統計誤差、資料品質指標與直方圖預計算。
+* **[REQ-CORE-02] 資料集報告合約：** 必須定義 `DatasetReport` 作為頂層聚合容器，包含元資料、全域品質指標與各欄位 Profile。
+* **[REQ-CORE-03] 假設檢定合約：** 必須定義 `HypothesisTestResult`，包含 `test_name`, `statistic`, `p_value`, `p_value_display`, `p_value_is_underflowed`, `alpha`, `n_samples`, `reject_null`, `evidence_level`。
+* **[REQ-CORE-04] 診斷證據合約：** 必須定義 `DiagnosticEvidence`，包含 `data_type`, `sample_structure`, `sample_sizes`, `group_size_ratio`, `n_valid_pairs`, `missing_data_strategy`, `missing_count`, `missing_ratio`, `normality_evidence`, `variance_evidence`, `outlier_evidence`, `dependency_evidence`, `group_balance`, `multiple_testing_evidence`, `evidence_level`, `warnings`。
+* **[REQ-CORE-05] 效應量合約：** 必須定義 `DynamicEffectSize`，包含 `metric`, `estimate`, `standard_error`, `confidence_interval`, `sample_sizes`, `diagnostic_evidence`, `decision_trace`, `status`, `warnings`。
+* **[REQ-CORE-06] 決策軌跡合約：** 必須定義 `DecisionTrace`，包含 `steps`, `assumptions_checked`, `assumptions_supported`, `assumptions_not_supported`, `warnings`, `final_reason`。
+* **[REQ-CORE-07] 相關性結果合約：** 必須定義 `CorrelationResult`，包含 `method`, `feature_names`, `correlation_matrix`, `sparse_pairs`, `sample_size`, `sample_size_matrix`, `missing_data_strategy`, `raw_p_values`, `adjusted_p_values`, `multiple_testing_method`, `threshold`, `warnings`。
+* **[REQ-CORE-08] 枚舉定義：** 必須定義 `EvidenceLevel` (HIGH, MODERATE, LOW, INSUFFICIENT)、`VariableType` (CONTINUOUS, CATEGORICAL, DATETIME)、`SampleStructure` (INDEPENDENT, PAIRED, REPEATED_MEASURES, TIME_SERIES, UNKNOWN)、`MissingDataStrategy` (PAIRWISE_COMPLETE, LISTWISE_COMPLETE, ERROR)。
+* **[REQ-CORE-09] JSON 序列化：** 所有合約必須支援 `model_dump_json()`。`NaN` / `Inf` → `null`。NumPy 型別自動轉換為 Python 原生型別。
+* **[REQ-CORE-10] Report 分離：** 大型雙變數診斷結果（`CorrelationResult`, `DynamicEffectSize`, `DiagnosticReport`）不得無條件塞入 `DatasetReport`，必須支援獨立產生與序列化。
 
-* **[REQ-CORE-02] 類別型統計合約：** 必須定義 `CategoricalProfile`（Pydantic Model），包含：
-    * 各類別統計：`stats: list[CategoryStats]`，其中 `CategoryStats` 含 `category`, `count`, `proportion`, `std_error`（基於二項式分佈 $\sigma = \sqrt{p(1-p)/N}$）
-    * 樣本資訊：`n_total`, `n_unique`
-    * 資料品質：`missing_count`, `missing_ratio`
-    * 高基數標記：`is_high_cardinality: bool`, `truncated_at: int | None`
+### **3.2 profiling — 單變數資料統計與品質檢驗**
 
-* **[REQ-CORE-03] 時序型統計合約：** 必須定義 `DatetimeProfile`（Pydantic Model），包含：
-    * 時間範圍：`start`, `end`, `duration`
-    * 單調性驗證：`is_monotonic_increasing: bool`
-    * 斷層分析：`gap_count: int`, `gap_locations: list[dict]`（含斷層起止時間與持續時間）
-    * 頻率推估：`inferred_freq: str | None`
-    * 樣本資訊：`n_samples`, `missing_count`, `missing_ratio`
+* **[REQ-PROF-01] 全量掃描：** 必須在本地 Python Runtime 中完整掃描 NumPy Array，嚴禁任何形式的抽樣。
+* **[REQ-PROF-02] 數值型統計量：** `NumericProfiler` 必須計算 mean, variance, std, skewness, kurtosis, median, q25, q75, min, max, SEM, CI, 直方圖。
+* **[REQ-PROF-03] 極端值防禦：** 掃描過程遭遇 NaN / Inf 時，必須依策略處理或拋出 `DataQualityError`。
+* **[REQ-PROF-04] 類別型掃描：** `CategoricalProfiler` 必須計算次數、比例與二項式標準誤。
+* **[REQ-PROF-05] 高基數防禦：** 遭遇高基數欄位時自動截斷至 Top-N，發出 `HighCardinalityWarning`。
+* **[REQ-PROF-06] 時序型分析：** `DatetimeProfiler` 必須驗證單調性、偵測時間斷層、推估頻率。
+* **[REQ-PROF-07] 分佈檢定：** `DistributionTester` 必須回傳 `HypothesisTestResult`（非裸 dict），輸出不得將 p > α 解釋為「資料已證明符合該分佈」。
+* **[REQ-PROF-08] 全表路由：** `ProfilingEngine` 必須根據 dtype 自動路由至對應 Profiler。
 
-* **[REQ-CORE-04] 資料集報告合約：** 必須定義 `DatasetReport`（Pydantic Model），作為頂層聚合容器，包含：
-    * 元資料：`dataset_name`, `created_at`, `ds_data_miner_version`, `total_rows`, `total_columns`
-    * 全域品質指標：`duplicate_row_count`, `duplicate_row_ratio`
-    * 各欄位的 Profile：`columns: dict[str, DistributionProfile | CategoricalProfile | DatetimeProfile]`
+### **3.3 diagnostics — 雙變數智慧診斷引擎**
 
-* **[REQ-CORE-05] JSON 序列化能力：** 所有合約必須滿足：
-    * 支援 `model.model_dump_json()` 直接匯出為有效 JSON 字串。
-    * 特殊浮點數處理：`NaN` → `null`, `Inf` / `-Inf` → `null`（或自定義標記）。
-    * NumPy 原生型別（`np.float64`, `np.int64` 等）必須在序列化前自動轉換為 Python 原生型別。
+#### **3.3.1 Evidence Collection**
 
-### **3.2 my\_lib.profiling (資料統計與品質檢驗)**
+* **[REQ-DIAG-01] 資料型態辨識：** 必須在診斷開始前辨識 Continuous / Categorical / Datetime。
+* **[REQ-DIAG-02] 樣本結構辨識：** 必須評估 Independent, Paired, Repeated Measurements, Time Series, Unknown。當無法證明獨立性時，不得默認為 INDEPENDENT。
+* **[REQ-DIAG-03] 常態性證據：** 收集常態性檢定結果，不得將 p > α 解讀為「證明常態」。
+* **[REQ-DIAG-04] 變異數證據：** 使用 Brown-Forsythe / median-centered Levene 評估兩組變異差異。
+* **[REQ-DIAG-05] 離群值偵測：** 掃描兩組資料中是否存在離群值。
+* **[REQ-DIAG-06] 相依性偵測：** 若資料包含 Lot, Wafer, Chamber, Tool 等 grouping 資訊，必須產生 `DependencyWarning` / `DependencyEvidence`。不得在無警告的情況下假設所有觀測值為獨立樣本。
+* **[REQ-DIAG-07] 時間相依性：** 若資料仍維持 timestamp-level resolution（未經 aggregation），必須辨識 temporal dependency / autocorrelation 風險。
+* **[REQ-DIAG-08] 群組平衡性：** 必須檢查 Group Size Ratio。當 `max(n_a, n_b) / min(n_a, n_b) > 10` 時，產生 `ImbalancedSampleWarning`。
+* **[REQ-DIAG-09] 缺失值策略：** 雙變數分析必須明確記錄 `missing_data_strategy`，禁止將含 NaN 的原始矩陣直接傳入統計計算。
 
-* **[REQ-PROF-01] 全量掃描：** 必須具備在本地 Python Runtime 環境中，高效掃描記憶體內全量資料（1D NumPy Array / Pandas Series）的能力。**嚴禁任何形式的抽樣。**
-* **[REQ-PROF-02] 數值型基礎統計量：** `NumericProfiler` 能夠計算平均數、變異數、標準差、偏度、峰度、中位數、分位數、最小值與最大值。
-* **[REQ-PROF-03] 數值型統計誤差：** `NumericProfiler` 必須計算平均數標準誤 (SEM = $\sigma / \sqrt{N}$) 與信賴區間 (CI)，並將結果寫入合約。
-* **[REQ-PROF-04] 數值型直方圖預計算：** `NumericProfiler` 必須在 fit 階段計算直方圖的 `bin_edges` 與 `counts`，並存入合約中，**不得儲存原始資料陣列**。
-* **[REQ-PROF-05] 分佈檢定：** 必須實作統計檢定演算法（如 K-S Test），並輸出明確的 P-value 以檢驗資料是否符合特定機率分配（如常態分配）。
-* **[REQ-PROF-06] 極端值防禦：** 掃描過程中若遭遇 NaN 或 Inf，必須具備安全的容錯機制（提供 `ignore_nan` 參數選項），或拋出明確的自定義例外。
-* **[REQ-PROF-07] 類別型全量掃描：** `CategoricalProfiler` 必須在本地記憶體中完整掃描類別型資料，計算各類別的出現次數、比例與二項式標準誤。
-* **[REQ-PROF-08] 高基數防禦：** `CategoricalProfiler` 遭遇高基數欄位（如 UUID）時，必須自動偵測（閾值可配置，預設 100），截斷至 Top-N 類別，並將剩餘類別歸入 `_OTHER_` 桶，同時發出 `HighCardinalityWarning`。
-* **[REQ-PROF-09] 時序型特徵分析：** `DatetimeProfiler` 必須驗證時間戳記是否單調遞增、偵測時間斷層（Gaps），並推估採樣頻率。
-* **[REQ-PROF-10] 缺失值比例：** 所有 Profiler 在掃描時，必須統計 missing（NaN / NaT / None）的筆數與比例，寫入對應合約的 `missing_count` 與 `missing_ratio` 欄位。
-* **[REQ-PROF-11] 重複紀錄檢驗：** `DatasetReport` 層級必須支援全表重複列偵測，輸出 `duplicate_row_count` 與 `duplicate_row_ratio`。
+#### **3.3.2 Metric Selection & Effect Size**
 
-### **3.3 my\_lib.export (JSON 匯出)**
+* **[REQ-DIAG-10] 策略註冊表：** 統計方法推薦必須透過可擴充的 `MetricRegistry` + `EffectSizeStrategy` 管理，不得硬編碼於單一 if/elif/else Router。
+* **[REQ-DIAG-11] Cohen's d：** 當證據支持 continuous, independent, approximately normal, no strong evidence of unequal variance 時推薦。
+* **[REQ-DIAG-12] Hedges' g：** 小樣本校正。
+* **[REQ-DIAG-13] Glass's Δ：** 當證據支持 unequal variance 且 reference group SD stable 時推薦。若 `SD_reference == 0`，拋出 `MetricCalculationError`，禁止輸出 `inf` / `NaN`。
+* **[REQ-DIAG-14] Cliff's δ：** 當資料 severely skewed, outlier contaminated, non-normal, strongly imbalanced 且缺乏足夠證據支持 parametric assumptions 時推薦。
+* **[REQ-DIAG-15] Decision Trace：** 每一次推薦必須保存完整 `DecisionTrace`，記錄 Variable Type → Sample Structure → Diagnostics → Evidence → Recommendation。
+* **[REQ-DIAG-16] Insufficient Evidence：** 當資料品質、樣本數或樣本結構不足以支持可靠判斷時，回傳 Warning / Insufficient Evidence，而非強制選擇統計方法。
 
-* **[REQ-EXPORT-01] JSON 檔案匯出：** 提供 `ReportExporter` 類別，接收 `DatasetReport` 物件，匯出為格式化（縮排）、高可讀性的 JSON 檔案。
-* **[REQ-EXPORT-02] JSON Schema 產出：** 支援透過 Pydantic `model_json_schema()` 自動產出對應的 JSON Schema 定義，供下游消費者（`ds-data-miner-vis`, `ds-data-miner-reporter`）進行欄位驗證。
+#### **3.3.3 Correlation**
 
-### **3.4 介面轉接層 (Adapters)**
+* **[REQ-CORR-01] Pearson MVP：** 提供 `df.trust.correlation(method="pearson")` API。MVP 支援 Pearson's r。
+* **[REQ-CORR-02] Missing Data Masking：** 每個 feature pair 必須建立 boolean mask，禁止直接對含 NaN 的矩陣呼叫 `np.corrcoef`。每個 pair 的有效樣本數必須記錄。
+* **[REQ-CORR-03] Multiple Testing：** 支援 Benjamini-Hochberg FDR correction。必須區分 raw p-value 與 adjusted p-value。
+* **[REQ-CORR-04] High Dimensionality Guard：** 當 feature 數量超過門檻時，不得無條件將完整 N×N 矩陣作為 JSON payload 輸出。必須支援 threshold filtering（僅保留 `|r| ≥ threshold` 的 pairs）。
+* **[REQ-CORR-05] Feature Screening Semantics：** 文件與輸出必須明確聲明 correlation ≠ causation，Pairwise Correlation 不得被視為完整 Multicollinearity Diagnosis。
+* **[REQ-CORR-06] Non-linear Extension：** 架構必須預留 Mutual Information / Distance Correlation 的擴充能力，不得破壞 Registry Architecture。
 
-* **[REQ-ADPT-01] Pandas 整合：** 提供 Extension/Accessor（`df.miner`），讓使用者能執行如 `df.miner.profile()` 的直覺操作。
-* **[REQ-ADPT-02] 動態型別路由：** 轉接層必須依據 DataFrame 欄位的 dtype 自動派發至對應的 Profiler（numeric → `NumericProfiler`、object/category → `CategoricalProfiler`、datetime64 → `DatetimeProfiler`）。
-* **[REQ-ADPT-03] 全表掃描匯出：** 轉接層必須支援一次性掃描 DataFrame 全部欄位，聚合為 `DatasetReport`，並透過 `ReportExporter` 匯出 JSON。
+### **3.4 uncertainty — 不確定性誤差傳遞**
+
+* **[REQ-UNC-01] 解析法：** `AnalyticalPropagator` 必須接收 `UncertaintyArray` 與轉換函式，回傳新的 `UncertaintyArray`。
+* **[REQ-UNC-02] 蒙地卡羅法：** `MonteCarloPropagator` 必須允許自定義 `n_simulations`，Random Seed 可固定，輸出包含 simulation configuration。
+* **[REQ-UNC-03] 數值穩定：** 數學無效操作時產生 `NumericalInstabilityError`。
+
+### **3.5 介面轉接層 (Adapters)**
+
+* **[REQ-ADPT-01] Pandas Accessor：** 註冊 `df.trust` accessor，提供 `profile()`, `correlation()`, `diagnose()` 三個主要 API。
+* **[REQ-ADPT-02] 動態型別路由：** 依據 DataFrame 欄位 dtype 自動派發至對應 Profiler。
+* **[REQ-ADPT-03] Adapter 邊界：** 不得將 `pd.DataFrame` / `pd.Series` 傳入 Domain Layer。必須在 Adapter 層轉換為 `np.ndarray`。
+* **[REQ-ADPT-04] Viz Helper：** `viz.plot_uncertainty_trend(...)` 能正確渲染折線與 uncertainty band。Core / Domain 不得依賴 Matplotlib。
+
+### **3.6 export — JSON 匯出**
+
+* **[REQ-EXPORT-01] JSON 匯出：** `ReportExporter` 必須支援 `DatasetReport`, `DiagnosticReport`, `CorrelationResult`, `DynamicEffectSize` 的獨立輸出。
+* **[REQ-EXPORT-02] JSON Schema：** 支援透過 Pydantic `model_json_schema()` 自動產出 Schema 定義。
+
+---
 
 ## **4. 非功能性需求 (Non-Functional Requirements)**
 
 ### **4.1 效能與資源管理 (Performance)**
 
-* **[NFR-PERF-01]** 核心數學運算必須全面採用 NumPy/Pandas C-extension 向量化操作（Vectorization）。嚴禁使用 Python 原生 `for` 迴圈處理 Array 等級資料。
-* **[NFR-PERF-02]** Profiling 掃描記憶體資料時，不得產生不必要的 DataFrame 深拷貝（Deep Copy），以避免 OOM 異常。
+* **[NFR-PERF-01]** 核心數學運算必須全面使用 NumPy / SciPy 向量化操作。嚴禁 Python 原生 `for` 迴圈處理 Array 資料。
+* **[NFR-PERF-02]** 不得產生不必要的 DataFrame 深拷貝（Deep Copy）。不得將原始大型陣列保存於合約物件中。
+* **[NFR-PERF-03]** Correlation Matrix 建立、轉換與輸出過程必須具備 memory guard。Feature 超過門檻時自動啟動 Sparse Mode 或發出 Warning。
 
-### **4.2 序列化與型別安全 (Serialization)**
+### **4.2 數值穩定性 (Numerical Stability)**
 
-* **[NFR-SERIAL-01]** 所有核心資料合約必須使用 **Pydantic v2 BaseModel**，並搭配自定義 JSON Encoder 處理：
-    * `float('nan')` → JSON `null`
-    * `float('inf')` / `float('-inf')` → JSON `null`
-    * `numpy.float64` / `numpy.int64` 等 → Python 原生 `float` / `int`
-    * `numpy.bool_` → Python 原生 `bool`
-    * `datetime` / `Timestamp` → ISO 8601 字串
+* **[NFR-NUM-01]** P-value underflow 至 `0.0` 時，必須標記 `p_value_is_underflowed = True` 並提供 `p_value_display = "< 1e-300"`。
+* **[NFR-NUM-02]** 需要除以 SD 的統計量必須先檢查 `std == 0`，否則拋出 `MetricCalculationError`。禁止輸出 `inf` / `NaN` 作為正常效應量結果。
+* **[NFR-NUM-03]** 統計運算優先使用 SciPy / NumPy 提供的 numerical stable implementation。不得自行重新實作已存在且經驗證的基礎統計演算法。
 
-### **4.3 封裝與部署 (Packaging & Deployment)**
+### **4.3 統計語義正確性 (Statistical Semantics)**
 
-* **[NFR-PKG-01] 現代化建置：** 必須廢棄傳統 `setup.py`，全面採用 PEP 621 標準的 `pyproject.toml` 進行依賴與元資料管理（推薦使用 Poetry 或 uv）。
-* **[NFR-PKG-02] Git 安裝支援：** 套件目錄結構必須標準化，確保使用者可透過 `pip install git+https://[repository_url]` 順利安裝並解析依賴樹。
-* **[NFR-PKG-03] 核心依賴最小化：** 核心安裝僅包含 `numpy`, `scipy`, `pydantic`。Pandas 為可選依賴（`pip install .[pandas]`）。
+* **[NFR-STAT-01]** p > α 時，必須使用 "Insufficient evidence to reject the null hypothesis"。禁止 "Data is normally distributed", "Equal variance = True", "Null hypothesis is proven"。
+* **[NFR-STAT-02]** Evidence Level 不代表統計假設「為真」，而代表目前資料對該判斷所提供的證據強度。
+* **[NFR-STAT-03]** Correlation 輸出必須聲明 association does not imply causation。
 
-### **4.4 程式碼品質與測試 (Quality & Testing)**
+### **4.4 序列化與型別安全 (Serialization)**
 
-* **[NFR-QA-01] 靜態型別：** 專案必須 100% 覆蓋 Type Hints，並通過 `mypy --strict` 檢驗。
-* **[NFR-QA-02] 數值穩定度測試：** 必須針對浮點數溢位（Overflow/Underflow）與零除錯（Division by Zero）建立邊界測試。
-* **[NFR-QA-03] 演算法驗證：** 統計計算結果必須在單元測試中與 `scipy` 或 `statsmodels` 等成熟套件的 Baseline 進行比對，容許誤差需小於 $10^{-7}$。
-* **[NFR-QA-04] JSON 往返測試 (Round-trip)：** 所有合約物件必須通過 `model → JSON → model` 的往返測試，確保序列化/反序列化後資料完全一致。
+* **[NFR-SERIAL-01]** 所有核心合約使用 Pydantic v2 BaseModel，`frozen=True`, `ser_json_inf_nan="null"`。
+* **[NFR-SERIAL-02]** NumPy 型別自動轉換為 Python 原生型別。
+
+### **4.5 封裝與部署 (Packaging)**
+
+* **[NFR-PKG-01]** 採用 PEP 621 標準 `pyproject.toml`，廢棄 `setup.py`。
+* **[NFR-PKG-02]** 支援 `pip install git+https://[repository_url]` 安裝。
+* **[NFR-PKG-03]** 核心依賴：`numpy`, `scipy`, `pydantic`。可選依賴：`pandas`, `matplotlib`。
+
+### **4.6 程式碼品質與測試 (Quality)**
+
+* **[NFR-QA-01]** 全專案 100% 覆蓋 Type Hints，通過 `mypy --strict`。
+* **[NFR-QA-02]** Test Coverage ≥ 85%。
+* **[NFR-QA-03]** 統計計算結果與 `scipy` / `statsmodels` 進行 Baseline 比對，容許誤差 ≤ `1e-7`。
+* **[NFR-QA-04]** JSON Round-trip Testing：所有合約通過 `model → JSON → model` 往返測試。
+* **[NFR-QA-05]** Core Contracts 必須包含 Property-Based Testing（`hypothesis`）。
+* **[NFR-QA-06]** Architecture Dependency Test：CI 必須檢查 `core/` 與 `profiling/` 不含 `import pandas` / `import matplotlib`。
+
+---
 
 ## **5. 驗收標準 (Acceptance Criteria)**
 
-> 1. **安裝驗收：** 能夠在乾淨的 Python 虛擬環境中，透過 Git URL 成功安裝，且 `import ds_data_miner` 過程無報錯。
-> 2. **架構驗收：** 執行依賴檢查工具時，`core`, `profiling` 兩個核心模組內部，絕對不可出現 `import pandas` 或 `import matplotlib`。
-> 3. **流程驗收（User Journey）：** 能夠提供一份完整的範例腳本，無縫演示「讀取 CSV (Pandas) → 全表資料統計掃描 (Profiling) → 匯出標準化 JSON 報告 → 驗證 JSON Schema 正確性」的端到端（End-to-End）分析流程。
-> 4. **JSON 驗收：** 匯出的 JSON 檔案必須：(a) 為有效 JSON，(b) 不含 `NaN` 或 `Infinity` 字面量，(c) 可被 JSON Schema 驗證通過，(d) 具備良好的人類可讀性（含縮排格式化）。
+> 1. **安裝驗收：** 在乾淨 Python 虛擬環境中，透過 Git URL 成功安裝，`import ds_data_miner` 無報錯。
+> 2. **架構驗收：** `core`, `profiling`, `diagnostics` 模組內部不含 `import pandas` / `import matplotlib`。
+> 3. **單變數 Profiling 驗收：** 完整演示 Pandas DataFrame → 全表掃描 → JSON 匯出 → Schema 驗證。
+> 4. **雙變數 Diagnostic 驗收：** 完整演示 A/B Comparison → Evidence Collection → MetricSelector → DynamicEffectSize → DecisionTrace。
+> 5. **Dependency Defense 驗收：** 展示含 Lot/Wafer/Chamber repeated measurements 的資料，確認系統產生 DependencyWarning。
+> 6. **Correlation 驗收：** 展示高維 FDC dataset 的 memory guard、sparse representation、FDR correction。
+> 7. **Numerical Stability 驗收：** 展示 p-value underflow, zero variance, NaN/Inf 等 edge cases 產生可解讀的 diagnostic status。
+> 8. **JSON 驗收：** 匯出 JSON 為有效 JSON、不含 `NaN` / `Infinity` 字面量、通過 Schema 驗證。
+> 9. **Statistical Semantics 驗收：** 所有輸出不含禁止的統計語義表述。
+
+---
+
+## **6. Release Gate**
+
+Release 必須同時滿足：
+
+| Gate | 要求 |
+|------|------|
+| **Correctness** | 統計公式與 reference implementation 一致 |
+| **Data Quality** | NaN / Inf / missing data 有明確策略 |
+| **Statistical Validity** | 不誤用 independence, normality, variance assumptions |
+| **Scalability** | 高維 correlation 不造成非預期 memory blow-up |
+| **Inference Safety** | Multiple Testing 有明確處理 |
+| **Numerical Stability** | underflow / zero variance / invalid operation 有防禦 |
+| **Explainability** | 每個推薦結果都有 DiagnosticEvidence + DecisionTrace |
+| **Extensibility** | 新增統計方法不需修改既有核心 Router |
+| **Architectural Integrity** | Domain Layer 不依賴 Pandas / Matplotlib |

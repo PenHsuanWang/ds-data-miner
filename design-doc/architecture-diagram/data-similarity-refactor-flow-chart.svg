@@ -1,0 +1,194 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1400" width="100%" height="100%">
+  <defs>
+    <!-- 定義標準箭頭 -->
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#555" />
+    </marker>
+    <!-- 定義警告箭頭 -->
+    <marker id="arrow-warn" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#d32f2f" />
+    </marker>
+
+    <!-- 節點共用樣式 -->
+    <style>
+      .bg-phase { fill: transparent; stroke: #9e9e9e; stroke-width: 2; stroke-dasharray: 6,4; rx: 8; }
+      .phase-title { font-family: sans-serif; font-size: 16px; font-weight: bold; fill: #616161; }
+      
+      .node-start { fill: #9c27b0; stroke: #7b1fa2; stroke-width: 2; rx: 25; }
+      .node-process { fill: #e3f2fd; stroke: #2196f3; stroke-width: 2; rx: 8; }
+      .node-evidence { fill: #e8f5e9; stroke: #4caf50; stroke-width: 2; rx: 8; }
+      .node-decision { fill: #fff3e0; stroke: #ff9800; stroke-width: 2; rx: 8; }
+      .node-warning { fill: #ffebee; stroke: #f44336; stroke-width: 2; rx: 8; }
+      .node-registry { fill: #f5f5f5; stroke: #9e9e9e; stroke-width: 2; rx: 8; }
+      .node-output { fill: #4caf50; stroke: #388e3c; stroke-width: 2; rx: 25; }
+
+      .text-light { font-family: sans-serif; font-size: 14px; font-weight: bold; fill: #ffffff; text-anchor: middle; }
+      .text-dark { font-family: sans-serif; font-size: 14px; font-weight: bold; fill: #333333; text-anchor: middle; }
+      .text-warn { font-family: sans-serif; font-size: 14px; font-weight: bold; fill: #d32f2f; text-anchor: middle; }
+      .text-small { font-family: sans-serif; font-size: 12px; fill: #555555; text-anchor: middle; }
+      .text-warn-small { font-family: sans-serif; font-size: 12px; fill: #d32f2f; text-anchor: middle; }
+      
+      .edge { stroke: #555; stroke-width: 2; fill: none; }
+      .edge-warn { stroke: #d32f2f; stroke-width: 2; fill: none; stroke-dasharray: 5,5; }
+      
+      /* 文字保護遮罩，讓蓋在線條上的文字更清晰 */
+      .label-bg { paint-order: stroke; stroke: #ffffff; stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; }
+    </style>
+  </defs>
+
+  <!-- ==================== Phases Backgrounds ==================== -->
+  <rect x="30" y="120" width="940" height="150" class="bg-phase"/>
+  <text x="50" y="145" class="phase-title">Phase 1: 基礎特徵與品質診斷 (Data Quality Assessment)</text>
+
+  <rect x="30" y="290" width="940" height="150" class="bg-phase"/>
+  <text x="50" y="315" class="phase-title">Phase 2: 相依性與獨立性防禦 (Dependency Defense)</text>
+
+  <rect x="30" y="460" width="940" height="230" class="bg-phase"/>
+  <text x="50" y="485" class="phase-title">Phase 3: 統計證據收集 (Statistical Evidence Collection)</text>
+
+  <rect x="30" y="710" width="940" height="420" class="bg-phase"/>
+  <text x="50" y="735" class="phase-title">Phase 4: 智慧決策路由 (Metric Selection Strategy)</text>
+
+  <rect x="30" y="1150" width="940" height="160" class="bg-phase"/>
+  <text x="50" y="1175" class="phase-title">Phase 5: 產出與追溯 (Output &amp; Traceability)</text>
+
+
+  <!-- ==================== Edges (Routing) ==================== -->
+  <!-- Start to Phase 1 -->
+  <path d="M 500 80 L 500 100 L 250 100 L 250 160" class="edge" marker-end="url(#arrow)"/>
+  
+  <!-- Phase 1 internal -->
+  <path d="M 350 200 L 400 200" class="edge" marker-end="url(#arrow)"/>
+  <path d="M 600 200 L 650 200" class="edge" marker-end="url(#arrow)"/>
+  
+  <!-- Phase 1 to Phase 2 -->
+  <path d="M 750 240 L 750 270 L 500 270 L 500 340" class="edge" marker-end="url(#arrow)"/>
+
+  <!-- Phase 2 internal & to Phase 3 -->
+  <path d="M 620 380 L 700 380" class="edge-warn" marker-end="url(#arrow-warn)"/>
+  <path d="M 500 420 L 500 450 L 250 450 L 250 520" class="edge" marker-end="url(#arrow)"/>
+
+  <!-- Phase 3 internal -->
+  <path d="M 350 560 L 400 560" class="edge" marker-end="url(#arrow)"/>
+  <path d="M 600 560 L 650 560" class="edge" marker-end="url(#arrow)"/>
+  <path d="M 750 600 L 750 630" class="edge-warn" marker-end="url(#arrow-warn)"/>
+  <path d="M 650 560 L 500 560 L 500 780" class="edge" marker-end="url(#arrow)"/>
+  <path d="M 750 680 L 750 750 L 500 750 L 500 780" class="edge" marker-end="url(#arrow)"/>
+
+  <!-- Phase 4 Branching -->
+  <!-- To Cliff -->
+  <path d="M 500 860 L 500 890 L 150 890 L 150 940" class="edge" marker-end="url(#arrow)"/>
+  <!-- To Glass -->
+  <path d="M 500 860 L 500 910 L 380 910 L 380 940" class="edge" marker-end="url(#arrow)"/>
+  <!-- To Cohen -->
+  <path d="M 500 860 L 500 910 L 620 910 L 620 940" class="edge" marker-end="url(#arrow)"/>
+  <!-- To Insufficient -->
+  <path d="M 500 860 L 500 890 L 850 890 L 850 940" class="edge-warn" marker-end="url(#arrow-warn)"/>
+
+  <!-- Phase 4 to Registry -->
+  <path d="M 150 1020 L 150 1060 L 380 1060" class="edge" marker-end="url(#arrow)"/>
+  <path d="M 380 1020 L 380 1060" class="edge" marker-end="url(#arrow)"/>
+  <path d="M 620 1020 L 620 1060 L 380 1060" class="edge" marker-end="url(#arrow)"/>
+
+  <!-- Registry to Output -->
+  <path d="M 380 1100 L 380 1200" class="edge" marker-end="url(#arrow)"/>
+
+  <!-- Warnings to End Warn -->
+  <path d="M 810 420 L 810 1200 L 830 1200" class="edge-warn" marker-end="url(#arrow-warn)"/>
+  <path d="M 850 1020 L 850 1200 L 830 1200" class="edge-warn" marker-end="url(#arrow-warn)"/>
+
+
+  <!-- ==================== Edge Labels ==================== -->
+  <text x="660" y="375" class="text-warn-small label-bg">Lot/Wafer Repeated</text>
+  <text x="370" y="445" class="text-small label-bg">判定為獨立樣本</text>
+  <text x="790" y="620" class="text-warn-small label-bg">Ratio > 10:1</text>
+  <text x="560" y="555" class="text-small label-bg">Balanced</text>
+
+  <text x="300" y="885" class="text-small label-bg">極端值/偏態/嚴重不平衡</text>
+  <text x="440" y="905" class="text-small label-bg">變異數不同質+穩定基準</text>
+  <text x="575" y="905" class="text-small label-bg">常態+變異數同質</text>
+  <text x="700" y="885" class="text-warn-small label-bg">樣本極小 / 證據衝突</text>
+
+
+  <!-- ==================== Nodes (Boxes & Texts) ==================== -->
+
+  <!-- Start Node -->
+  <rect x="360" y="20" width="280" height="60" class="node-start"/>
+  <text x="500" y="45" class="text-light">Input Data &amp; Metadata</text>
+  <text x="500" y="65" class="text-light" style="font-family: monospace; font-size: 13px;">df.trust.diagnose</text>
+
+  <!-- Phase 1 -->
+  <rect x="150" y="160" width="200" height="80" class="node-process"/>
+  <text x="250" y="195" class="text-dark">資料型態辨識</text>
+  <text x="250" y="215" class="text-small">Data Type (US 5.4.1)</text>
+
+  <rect x="400" y="160" width="200" height="80" class="node-process"/>
+  <text x="500" y="195" class="text-dark">樣本結構偵測</text>
+  <text x="500" y="215" class="text-small">Structure (US 5.4.2)</text>
+
+  <rect x="650" y="160" width="200" height="80" class="node-process"/>
+  <text x="750" y="195" class="text-dark">品質與缺失值過濾</text>
+  <text x="750" y="215" class="text-small">NaN Defense (US 5.2.4)</text>
+
+  <!-- Phase 2 -->
+  <rect x="380" y="340" width="240" height="80" class="node-decision"/>
+  <text x="500" y="375" class="text-dark">相依性風險評估</text>
+  <text x="500" y="395" class="text-small">Temporal Check (US 5.1.2)</text>
+
+  <rect x="700" y="340" width="220" height="80" class="node-warning"/>
+  <text x="810" y="375" class="text-warn">Dependency Warning</text>
+  <text x="810" y="395" class="text-warn-small">防禦偽重複 (US 5.2.6)</text>
+
+  <!-- Phase 3 -->
+  <rect x="150" y="520" width="200" height="80" class="node-evidence"/>
+  <text x="250" y="555" class="text-dark">常態性檢定證據</text>
+  <text x="250" y="575" class="text-small">Normality (US 5.4.3)</text>
+
+  <rect x="400" y="520" width="200" height="80" class="node-evidence"/>
+  <text x="500" y="555" class="text-dark">變異數檢定證據</text>
+  <text x="500" y="575" class="text-small">Levene Test (US 5.1.3)</text>
+
+  <rect x="650" y="520" width="200" height="80" class="node-decision"/>
+  <text x="750" y="555" class="text-dark">群組平衡性檢查</text>
+  <text x="750" y="575" class="text-small">Group Balance (US 5.1.6)</text>
+
+  <rect x="650" y="630" width="200" height="50" class="node-warning"/>
+  <text x="750" y="652" class="text-warn">Imbalanced Warning</text>
+  <text x="750" y="668" class="text-warn-small">降低整體證據等級</text>
+
+  <!-- Phase 4 -->
+  <rect x="380" y="780" width="240" height="80" class="node-decision"/>
+  <text x="500" y="815" class="text-dark">綜合證據評估</text>
+  <text x="500" y="835" class="text-small">Evidence Evaluation (US 5.4.10)</text>
+
+  <rect x="60" y="940" width="180" height="80" class="node-process"/>
+  <text x="150" y="975" class="text-dark">推薦: Cliff's δ</text>
+  <text x="150" y="995" class="text-small">穩健無母數 (US 5.2.1)</text>
+
+  <rect x="290" y="940" width="180" height="80" class="node-process"/>
+  <text x="380" y="975" class="text-dark">推薦: Glass's Δ</text>
+  <text x="380" y="995" class="text-small">非同質變異數 (US 5.1.4)</text>
+
+  <rect x="530" y="940" width="180" height="80" class="node-process"/>
+  <text x="620" y="975" class="text-dark">推薦: Cohen's d / g</text>
+  <text x="620" y="995" class="text-small">同質變異數 (US 5.1.5)</text>
+
+  <rect x="740" y="940" width="220" height="80" class="node-warning"/>
+  <text x="850" y="975" class="text-warn">Insufficient Evidence</text>
+  <text x="850" y="995" class="text-warn-small">不強制推薦 (US 5.4.12)</text>
+
+  <rect x="150" y="1060" width="460" height="40" class="node-registry"/>
+  <text x="380" y="1085" class="text-dark">Strategy Registry (策略註冊表) - US 5.4.13</text>
+
+  <!-- Phase 5 -->
+  <rect x="230" y="1200" width="300" height="90" class="node-output"/>
+  <text x="380" y="1235" class="text-light">輸出: DynamicEffectSize</text>
+  <text x="380" y="1255" class="text-light" style="font-size: 13px; font-weight: normal;">包含 DiagnosticEvidence</text>
+  <text x="380" y="1275" class="text-light" style="font-size: 13px; font-weight: normal;">與完整 DecisionTrace (US 5.4.11)</text>
+
+  <rect x="680" y="1200" width="240" height="90" class="node-warning"/>
+  <text x="800" y="1235" class="text-warn">輸出: Warning / Block</text>
+  <text x="800" y="1255" class="text-warn-small">包含診斷紀錄</text>
+  <text x="800" y="1275" class="text-warn-small">中斷不安全的統計運算</text>
+
+</svg>

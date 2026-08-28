@@ -1,0 +1,262 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 1400" width="100%" height="100%">
+  <defs>
+    <!-- 定義箭頭標記 -->
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#666" />
+    </marker>
+    <marker id="arrow-domain" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#1976d2" />
+    </marker>
+    <marker id="composition" viewBox="0 0 20 10" refX="19" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse">
+      <path d="M 0 5 L 10 0 L 20 5 L 10 10 z" fill="#333" />
+    </marker>
+    <marker id="inheritance" viewBox="0 0 15 15" refX="14" refY="7.5" markerWidth="9" markerHeight="9" orient="auto-start-reverse">
+      <path d="M 0 15 L 15 7.5 L 0 0 z" fill="white" stroke="#333" stroke-width="1.5" />
+    </marker>
+
+    <!-- 模組背景顏色 -->
+    <rect id="bg-adapter" width="340" height="180" rx="10" fill="#e8f5e9" stroke="#4caf50" stroke-width="2" stroke-dasharray="6,6"/>
+    <rect id="bg-export" width="320" height="180" rx="10" fill="#fff3e0" stroke="#ff9800" stroke-width="2" stroke-dasharray="6,6"/>
+    <rect id="bg-application" width="1340" height="180" rx="10" fill="#e0f7fa" stroke="#00bcd4" stroke-width="2" stroke-dasharray="6,6"/>
+    <rect id="bg-domain" width="1340" height="380" rx="10" fill="#e3f2fd" stroke="#2196f3" stroke-width="2" stroke-dasharray="6,6"/>
+    <rect id="bg-core" width="1340" height="520" rx="10" fill="#f3e5f5" stroke="#9c27b0" stroke-width="2" stroke-dasharray="6,6"/>
+
+    <!-- 類別卡片樣式與字型設定 -->
+    <style>
+      .class-box { fill: white; stroke: #333; stroke-width: 1.5; rx: 6; }
+      .highlight-box { fill: #fffde7; stroke: #d32f2f; stroke-width: 2; rx: 6; }
+      .class-title { font-family: monospace; font-size: 16px; font-weight: bold; fill: #333; text-anchor: middle; }
+      .highlight-title { font-family: monospace; font-size: 16px; font-weight: bold; fill: #d32f2f; text-anchor: middle; }
+      .class-attr { font-family: monospace; font-size: 13px; fill: #444; }
+      .module-title { font-family: sans-serif; font-size: 18px; font-weight: bold; fill: #333; }
+      .note { font-family: sans-serif; font-size: 13px; fill: #666; font-style: italic; }
+      .dependency { stroke: #666; stroke-width: 1.5; stroke-dasharray: 5,5; fill: none; }
+      .dependency-domain { stroke: #1976d2; stroke-width: 1.5; stroke-dasharray: 5,5; fill: none; }
+      .relation { stroke: #333; stroke-width: 1.5; fill: none; }
+    </style>
+  </defs>
+
+  <!-- ==================== Core Layer (Bottom) ==================== -->
+  <g transform="translate(30, 850)">
+    <use href="#bg-core"/>
+    <text x="20" y="30" class="module-title" fill="#9c27b0">Core Layer (Contracts) - ds_data_miner.core</text>
+    
+    <!-- ProfileBaseModel -->
+    <rect x="570" y="20" width="200" height="40" class="class-box"/>
+    <text x="670" y="45" class="class-title">ProfileBaseModel</text>
+
+    <!-- [Univariate Profiles] -->
+    <rect x="40" y="100" width="220" height="110" class="class-box"/>
+    <text x="150" y="122" class="class-title">DistributionProfile</text>
+    <path d="M 40 132 L 260 132" stroke="#333" stroke-width="1"/>
+    <text x="50" y="150" class="class-attr">+ mean, variance, std</text>
+    <text x="50" y="168" class="class-attr">+ ci_lower, ci_upper</text>
+    <text x="50" y="186" class="class-attr">+ histogram_bin_edges</text>
+
+    <rect x="290" y="100" width="220" height="110" class="class-box"/>
+    <text x="400" y="122" class="class-title">CategoricalProfile</text>
+    <path d="M 290 132 L 510 132" stroke="#333" stroke-width="1"/>
+    <text x="300" y="150" class="class-attr">+ stats: List[CatStats]</text>
+    <text x="300" y="168" class="class-attr">+ is_high_cardinality</text>
+
+    <rect x="540" y="100" width="210" height="110" class="class-box"/>
+    <text x="645" y="122" class="class-title">DatetimeProfile</text>
+    <path d="M 540 132 L 750 132" stroke="#333" stroke-width="1"/>
+    <text x="550" y="150" class="class-attr">+ is_monotonic</text>
+    <text x="550" y="168" class="class-attr">+ gap_locations</text>
+    
+    <rect x="780" y="100" width="240" height="110" class="class-box"/>
+    <text x="900" y="122" class="class-title">HypothesisTestResult</text>
+    <path d="M 780 132 L 1020 132" stroke="#333" stroke-width="1"/>
+    <text x="790" y="150" class="class-attr">+ p_value, statistic</text>
+    <text x="790" y="168" class="class-attr">+ p_value_is_underflowed</text>
+    <text x="790" y="186" class="class-attr">+ evidence_level</text>
+
+    <!-- [Bivariate Diagnostic Contracts] -->
+    <rect x="40" y="250" width="280" height="140" class="highlight-box"/>
+    <text x="180" y="272" class="highlight-title">DiagnosticEvidence</text>
+    <path d="M 40 282 L 320 282" stroke="#d32f2f" stroke-width="1"/>
+    <text x="50" y="300" class="class-attr">+ data_type, sample_structure</text>
+    <text x="50" y="318" class="class-attr">+ normality_evidence</text>
+    <text x="50" y="336" class="class-attr">+ variance_evidence</text>
+    <text x="50" y="354" class="class-attr">+ dependency_evidence</text>
+    <text x="50" y="372" class="class-attr">+ group_balance, warnings</text>
+
+    <rect x="350" y="250" width="260" height="140" class="highlight-box"/>
+    <text x="480" y="272" class="highlight-title">DecisionTrace</text>
+    <path d="M 350 282 L 610 282" stroke="#d32f2f" stroke-width="1"/>
+    <text x="360" y="300" class="class-attr">+ steps: List[str]</text>
+    <text x="360" y="318" class="class-attr">+ assumptions_checked</text>
+    <text x="360" y="336" class="class-attr">+ assumptions_supported</text>
+    <text x="360" y="354" class="class-attr">+ final_reason</text>
+
+    <rect x="640" y="250" width="280" height="140" class="highlight-box"/>
+    <text x="780" y="272" class="highlight-title">DynamicEffectSize</text>
+    <path d="M 640 282 L 920 282" stroke="#d32f2f" stroke-width="1"/>
+    <text x="650" y="300" class="class-attr">+ metric: str</text>
+    <text x="650" y="318" class="class-attr">+ estimate, standard_error</text>
+    <text x="650" y="336" class="class-attr">+ diagnostic_evidence</text>
+    <text x="650" y="354" class="class-attr">+ decision_trace</text>
+
+    <rect x="950" y="250" width="260" height="140" class="highlight-box"/>
+    <text x="1080" y="272" class="highlight-title">CorrelationResult</text>
+    <path d="M 950 282 L 1210 282" stroke="#d32f2f" stroke-width="1"/>
+    <text x="960" y="300" class="class-attr">+ method: str</text>
+    <text x="960" y="318" class="class-attr">+ correlation_matrix / sparse</text>
+    <text x="960" y="336" class="class-attr">+ raw_p_values</text>
+    <text x="960" y="354" class="class-attr">+ adjusted_p_values (FDR)</text>
+
+    <!-- [DatasetReport] -->
+    <rect x="1050" y="100" width="250" height="110" class="class-box"/>
+    <text x="1175" y="122" class="class-title">DatasetReport</text>
+    <path d="M 1050 132 L 1300 132" stroke="#333" stroke-width="1"/>
+    <text x="1060" y="150" class="class-attr">+ dataset_name</text>
+    <text x="1060" y="168" class="class-attr">+ columns: Dict[str, Profile]</text>
+    <text x="1060" y="186" class="class-attr">+ global_quality</text>
+
+    <!-- Inheritance routing -->
+    <!-- Univariate to BaseModel -->
+    <path d="M 150 100 L 150 80 L 670 80 L 670 60" class="relation" marker-end="url(#inheritance)"/>
+    <path d="M 400 100 L 400 80 L 670 80" class="relation"/>
+    <path d="M 645 100 L 645 80 L 670 80" class="relation"/>
+    <path d="M 900 100 L 900 80 L 670 80" class="relation"/>
+    <path d="M 1175 100 L 1175 80 L 670 80" class="relation"/>
+    <!-- Bivariate to BaseModel (Routing around boxes) -->
+    <path d="M 180 250 L 180 230 L 30 230 L 30 70 L 670 70 L 670 60" class="relation" marker-end="url(#inheritance)"/>
+    <path d="M 480 250 L 480 230 L 30 230" class="relation"/>
+    <path d="M 780 250 L 780 230 L 1320 230 L 1320 70 L 670 70" class="relation"/>
+    <path d="M 1080 250 L 1080 230 L 1320 230" class="relation"/>
+    
+    <!-- Composition: DynamicEffectSize uses Evidence & Trace -->
+    <path d="M 640 330 L 625 330 L 625 320 L 320 320" class="relation" marker-end="url(#composition)"/>
+    <path d="M 625 330 L 625 350 L 610 350" class="relation" marker-end="url(#composition)"/>
+  </g>
+
+  <!-- ==================== Domain Layer (Middle) ==================== -->
+  <g transform="translate(30, 440)">
+    <use href="#bg-domain"/>
+    <text x="20" y="30" class="module-title" fill="#2196f3">Domain Layer - ds_data_miner.profiling / diagnostics</text>
+
+    <!-- [Univariate Profilers] -->
+    <rect x="40" y="60" width="180" height="40" class="class-box"/>
+    <text x="130" y="85" class="class-title">NumericProfiler</text>
+
+    <rect x="40" y="120" width="180" height="40" class="class-box"/>
+    <text x="130" y="145" class="class-title">CategoricalProfiler</text>
+    
+    <rect x="40" y="180" width="180" height="40" class="class-box"/>
+    <text x="130" y="205" class="class-title">DatetimeProfiler</text>
+
+    <rect x="40" y="240" width="180" height="40" class="class-box"/>
+    <text x="130" y="265" class="class-title">DistributionTester</text>
+
+    <!-- [Bivariate Diagnostics] -->
+    <rect x="350" y="60" width="240" height="90" class="highlight-box"/>
+    <text x="470" y="82" class="highlight-title">EvidenceCollector</text>
+    <path d="M 350 92 L 590 92" stroke="#d32f2f" stroke-width="1"/>
+    <text x="360" y="110" class="class-attr">+ collect(x, y, ...)</text>
+    <text x="360" y="128" class="class-attr">  -> DiagnosticEvidence</text>
+
+    <rect x="350" y="210" width="240" height="90" class="highlight-box"/>
+    <text x="470" y="232" class="highlight-title">MetricSelector</text>
+    <path d="M 350 242 L 590 242" stroke="#d32f2f" stroke-width="1"/>
+    <text x="360" y="260" class="class-attr">+ select(evidence, reg)</text>
+    <text x="360" y="278" class="class-attr">  -> DynamicEffectSize</text>
+
+    <rect x="680" y="60" width="240" height="90" class="highlight-box"/>
+    <text x="800" y="82" class="highlight-title">MetricRegistry</text>
+    <path d="M 680 92 L 920 92" stroke="#d32f2f" stroke-width="1"/>
+    <text x="690" y="110" class="class-attr">+ register(name, strategy)</text>
+    <text x="690" y="128" class="class-attr">+ get(name) -> Strategy</text>
+
+    <rect x="680" y="210" width="240" height="70" class="class-box" stroke-dasharray="4,4"/>
+    <text x="800" y="232" class="class-title">&lt;&lt;ABC&gt;&gt; EffectSizeStrategy</text>
+    <path d="M 680 242 L 920 242" stroke="#333" stroke-width="1"/>
+    <text x="690" y="260" class="class-attr">+ calculate(x, y) -> float</text>
+
+    <rect x="1000" y="60" width="260" height="110" class="highlight-box"/>
+    <text x="1130" y="82" class="highlight-title">CorrelationEngine</text>
+    <path d="M 1000 92 L 1260 92" stroke="#d32f2f" stroke-width="1"/>
+    <text x="1010" y="110" class="class-attr">+ calculate(data, method)</text>
+    <text x="1010" y="128" class="class-attr">  -> CorrelationResult</text>
+    <text x="1010" y="146" class="class-attr">- apply_fdr_correction()</text>
+    <text x="1010" y="164" class="class-attr">- apply_sparse_mode()</text>
+
+    <!-- Internal Domain Dependencies -->
+    <path d="M 590 250 L 635 250 L 635 105 L 680 105" class="dependency-domain" marker-end="url(#arrow-domain)"/>
+    <path d="M 800 150 L 800 210" class="relation" marker-end="url(#composition)"/>
+  </g>
+
+  <!-- ==================== Application Layer (Middle Top) ==================== -->
+  <g transform="translate(30, 240)">
+    <use href="#bg-application"/>
+    <text x="20" y="30" class="module-title" fill="#00bcd4">Application Layer - ds_data_miner.profiling / diagnostics.engine</text>
+
+    <rect x="40" y="60" width="240" height="70" class="class-box"/>
+    <text x="160" y="85" class="class-title">ProfilingEngine</text>
+    <path d="M 40 95 L 280 95" stroke="#333" stroke-width="1"/>
+    <text x="50" y="115" class="class-attr">+ profile_dataset()</text>
+
+    <rect x="350" y="60" width="360" height="90" class="highlight-box"/>
+    <text x="530" y="85" class="highlight-title">BivariateDiagnosticEngine</text>
+    <path d="M 350 95 L 710 95" stroke="#d32f2f" stroke-width="1"/>
+    <text x="360" y="115" class="class-attr">+ diagnose(x, y) -> DynamicEffectSize</text>
+    <text x="360" y="135" class="class-attr">- Orchestrates Collectors &amp; Selectors</text>
+  </g>
+
+  <!-- ==================== Adapter Layer (Top Left) ==================== -->
+  <g transform="translate(30, 30)">
+    <use href="#bg-adapter"/>
+    <text x="20" y="30" class="module-title" fill="#4caf50">Adapter Layer - pandas_ext</text>
+    <text x="20" y="50" class="note">Entry Point / ACL (df.trust)</text>
+
+    <rect x="40" y="65" width="250" height="100" class="highlight-box"/>
+    <text x="165" y="87" class="highlight-title">TrustAccessor</text>
+    <path d="M 40 97 L 290 97" stroke="#d32f2f" stroke-width="1"/>
+    <text x="50" y="115" class="class-attr">+ profile()</text>
+    <text x="50" y="135" class="class-attr">+ correlation(method="...")</text>
+    <text x="50" y="155" class="class-attr">+ diagnose(x, y, ...)</text>
+  </g>
+
+  <!-- ==================== Export Layer (Top Right) ==================== -->
+  <g transform="translate(1050, 30)">
+    <use href="#bg-export"/>
+    <text x="20" y="30" class="module-title" fill="#ff9800">Export Layer - export</text>
+
+    <rect x="40" y="65" width="240" height="90" class="class-box"/>
+    <text x="160" y="87" class="class-title">ReportExporter</text>
+    <path d="M 40 97 L 280 97" stroke="#333" stroke-width="1"/>
+    <text x="50" y="120" class="class-attr">+ export(contract, path)</text>
+    <text x="50" y="140" class="class-attr">+ export_schema(path)</text>
+  </g>
+
+  <!-- ==================== CROSS-LAYER DEPENDENCIES (六角架構依賴流向) ==================== -->
+  
+  <!-- Adapter -> Application -->
+  <!-- Accessor to ProfilingEngine -->
+  <path d="M 165 195 L 165 300" class="dependency" marker-end="url(#arrow)"/>
+  <!-- Accessor to BivariateDiagnosticEngine -->
+  <path d="M 290 150 L 530 150 L 530 300" class="dependency" marker-end="url(#arrow)"/>
+
+  <!-- Adapter -> Domain (Correlation Engine direct route for df.trust.correlation) -->
+  <path d="M 290 120 L 1180 120 L 1180 500" class="dependency" marker-end="url(#arrow)"/>
+  
+  <!-- Application -> Domain -->
+  <!-- BivariateDiagnosticEngine to EvidenceCollector -->
+  <path d="M 470 390 L 470 500" class="dependency" marker-end="url(#arrow)"/>
+  <!-- BivariateDiagnosticEngine to MetricSelector -->
+  <path d="M 590 390 L 590 480 L 290 480 L 290 685 L 350 685" class="dependency" marker-end="url(#arrow)"/>
+
+  <!-- Domain -> Core (Instantiating Models) -->
+  <!-- EvidenceCollector to DiagnosticEvidence -->
+  <path d="M 470 590 L 470 820 L 180 820 L 180 1100" class="dependency" marker-end="url(#arrow)"/>
+  <!-- MetricSelector to DynamicEffectSize -->
+  <path d="M 590 685 L 780 685 L 780 1100" class="dependency" marker-end="url(#arrow)"/>
+  <!-- CorrelationEngine to CorrelationResult -->
+  <path d="M 1130 550 L 1130 1100" class="dependency" marker-end="url(#arrow)"/>
+
+  <!-- Export -> Core -->
+  <path d="M 1250 185 L 1250 820 L 1175 820 L 1175 950" class="dependency" marker-end="url(#arrow)"/>
+  <text x="1260" y="250" class="note">Serializes model_dump_json()</text>
+
+</svg>
